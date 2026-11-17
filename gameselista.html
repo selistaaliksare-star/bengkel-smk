@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kuis Master TKJ</title>
+<style>
+  * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; user-select: none; }
+  body { background: #0f172a; color: #f8fafc; margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+  .card { background: #1e293b; border: 2px solid #38bdf8; border-radius: 16px; padding: 22px; max-width: 520px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+  
+  .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 12px; margin-bottom: 18px; font-weight: bold; }
+  .badge-skor { color: #4ade80; font-size: 1.05rem; }
+  .badge-nyawa { color: #f87171; font-size: 1.05rem; }
+
+  .kategori { display: inline-block; background: #0284c7; color: #fff; font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; font-weight: bold; margin-bottom: 10px; }
+  .pertanyaan { font-size: 1.1rem; font-weight: bold; line-height: 1.5; margin-bottom: 18px; color: #f1f5f9; }
+
+  .opsi-list { display: flex; flex-direction: column; gap: 10px; }
+  button.opsi { background: #0f172a; color: #e2e8f0; border: 2px solid #334155; padding: 12px 15px; border-radius: 10px; text-align: left; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: 0.15s; }
+  button.opsi:hover { border-color: #38bdf8; background: #1e293b; }
+  button.benar { background: #166534 !important; border-color: #4ade80 !important; color: #fff !important; }
+  button.salah { background: #991b1b !important; border-color: #f87171 !important; color: #fff !important; }
+
+  .info-box { margin-top: 15px; padding: 12px; border-radius: 8px; background: #0f172a; font-size: 0.88rem; color: #94a3b8; display: none; border-left: 4px solid #38bdf8; }
+  .btn-lanjut { width: 100%; background: #38bdf8; color: #0f172a; border: none; padding: 12px; border-radius: 10px; font-weight: bold; font-size: 1rem; margin-top: 15px; cursor: pointer; display: none; }
+  .btn-lanjut:hover { background: #7dd3fc; }
+</style>
+</head>
+<body>
+
+<div class="card" id="layar-game">
+  <div class="header">
+    <span class="badge-skor">🏆 Skor: <span id="skor">0</span></span>
+    <span id="nomor-soal" style="color:#94a3b8;">Soal 1/10</span>
+    <span class="badge-nyawa" id="nyawa">❤️❤️❤️</span>
+  </div>
+
+  <div class="kategori" id="kategori">Jaringan Dasar</div>
+  <div class="pertanyaan" id="pertanyaan">Memuat pertanyaan...</div>
+
+  <div class="opsi-list" id="opsi-list"></div>
+
+  <div class="info-box" id="info-box"></div>
+  <button class="btn-lanjut" id="btn-lanjut" onclick="soalBerikutnya()">Lanjut ke Soal Berikutnya ➔</button>
+</div>
+
+<script>
+  const bankSoal = [
+    {
+      kat: "Kabel & Perangkat Keras",
+      tanya: "Jenis kabel UTP yang digunakan untuk menghubungkan dua perangkat yang sama (misalnya Switch ke Switch) adalah...",
+      opsi: ["Kabel Straight-Through", "Kabel Cross-Over", "Kabel Rollover", "Kabel Coaxial"],
+      kunci: 1,
+      info: "Kabel Cross-Over digunakan untuk menghubungkan perangkat sejenis (PC ke PC, Switch ke Switch)."
+    },
+    {
+      kat: "IP Address & Subnetting",
+      tanya: "Berapa jumlah host maksimal yang valid dan bisa dipakai pada jaringan dengan prefix /24?",
+      opsi: ["256 host", "255 host", "254 host", "128 host"],
+      kunci: 2,
+      info: "Total IP adalah 256, dikurangi 1 Network ID dan 1 Broadcast ID, sehingga tersisa 254 host valid."
+    },
+    {
+      kat: "Perintah Dasar Linux / CLI",
+      tanya: "Perintah pada terminal Linux Debian/Ubuntu untuk memeriksa konfigurasi IP Address pada interface jaringan adalah...",
+      opsi: ["ip a atau ifconfig", "mkdir net", "chmod 777", "apt-get update"],
+      kunci: 0,
+      info: "Perintah 'ip a' atau 'ifconfig' menampilkan daftar kartu jaringan beserta alamat IP aktif."
+    },
+    {
+      kat: "Protokol & Port Jaringan",
+      tanya: "Layanan web server HTTPS yang aman dan terenkripsi berjalan pada port default nomor...",
+      opsi: ["Port 21", "Port 22", "Port 80", "Port 443"],
+      kunci: 3,
+      info: "HTTP menggunakan Port 80, sedangkan HTTPS menggunakan Port 443."
+    },
+    {
+      kat: "Topologi Jaringan",
+      tanya: "Topologi jaringan yang menggunakan satu perangkat pusat (Switch/Hub) untuk menghubungkan semua komputer klien disebut...",
+      opsi: ["Topologi Bus", "Topologi Ring", "Topologi Star", "Topologi Mesh"],
+      kunci: 2,
+      info: "Topologi Star paling banyak dipakai di lab komputer karena mudah mendeteksi jika ada kabel klien yang putus."
+    },
+    {
+      kat: "OSI Layer",
+      tanya: "Perangkat Router bekerja pada lapisan (layer) ke-3 dalam model referensi OSI, yaitu...",
+      opsi: ["Physical Layer", "Data Link Layer", "Network Layer", "Transport Layer"],
+      kunci: 2,
+      info: "Router memproses pengalamatan logis (IP Address) yang berada di Network Layer (Layer 3)."
+    },
+    {
+      kat: "Layanan Server",
+      tanya: "Server yang bertugas menerjemahkan nama domain (seperti google.com) menjadi alamat IP disebut...",
+      opsi: ["DHCP Server", "DNS Server", "FTP Server", "Proxy Server"],
+      kunci: 1,
+      info: "DNS (Domain Name System) menerjemahkan nama domain agar mudah diingat manusia."
+    },
+    {
+      kat: "MikroTik RouterOS",
+      tanya: "Fitur pada MikroTik yang berfungsi membagikan koneksi internet lokal (IP Private) agar bisa mengakses internet (IP Public) adalah...",
+      opsi: ["NAT (Masquerade)", "Hotspot", "Simple Queue", "Bridge"],
+      kunci: 0,
+      info: "Action 'masquerade' pada menu IP > Firewall > NAT menerjemahkan IP lokal ke IP publik."
+    },
+    {
+      kat: "Troubleshooting",
+      tanya: "Saat melakukan perintah 'ping' di CMD, muncul pesan 'Request Timed Out (RTO)'. Apa artinya?",
+      opsi: ["Koneksi sangat cepat", "Kabel LAN tidak terpasang di komputer sendiri", "Paket data terkirim namun tidak ada balasan dari tujuan", "IP Address berhasil terhubung"],
+      kunci: 2,
+      info: "RTO berarti permintaan terkirim, namun tujuan mati, terblokir firewall, atau jalur terputus di tengah."
+    },
+    {
+      kat: "Perangkat Keras PC",
+      tanya: "Komponen di dalam komputer yang berfungsi menyimpan data sementara saat program sedang dijalankan adalah...",
+      opsi: ["Harddisk / SSD", "RAM (Random Access Memory)", "Power Supply", "Processor"],
+      kunci: 1,
+      info: "RAM bersifat volatile (data hilang saat listrik mati) dan menyimpan data aplikasi yang sedang berjalan."
+    }
+  ];
+
+  let indeks = 0;
+  let skor = 0;
+  let nyawa = 3;
+  let sudahJawab = false;
+
+  function muatSoal() {
+    sudahJawab = false;
+    let s = bankSoal[indeks];
+    document.getElementById('nomor-soal').innerText = `Soal ${indeks + 1}/${bankSoal.length}`;
+    document.getElementById('kategori').innerText = s.kat;
+    document.getElementById('pertanyaan').innerText = s.tanya;
+    document.getElementById('info-box').style.display = 'none';
+    document.getElementById('btn-lanjut').style.display = 'none';
+
+    let list = document.getElementById('opsi-list');
+    list.innerHTML = '';
+
+    s.opsi.forEach((teks, i) => {
+      let btn = document.createElement('button');
+      btn.className = 'opsi';
+      btn.innerText = `${String.fromCharCode(65 + i)}. ${teks}`;
+      btn.onclick = () => cekJawaban(i, btn);
+      list.appendChild(btn);
+    });
+  }
+
+  function cekJawaban(pilih, tombol) {
+    if (sudahJawab) return;
+    sudahJawab = true;
+
+    let s = bankSoal[indeks];
+    let semuaTombol = document.getElementsByClassName('opsi');
+
+    if (pilih === s.kunci) {
+      tombol.classList.add('benar');
+      skor += 10;
+      document.getElementById('skor').innerText = skor;
+    } else {
+      tombol.classList.add('salah');
+      semuaTombol[s.kunci].classList.add('benar');
+      nyawa--;
+      updateNyawa();
+    }
+
+    let info = document.getElementById('info-box');
+    info.innerText = "💡 Pembahasan: " + s.info;
+    info.style.display = 'block';
+    document.getElementById('btn-lanjut').style.display = 'block';
+  }
+
+  function updateNyawa() {
+    let hati = "";
+    for (let i = 0; i < nyawa; i++) hati += "❤️";
+    document.getElementById('nyawa').innerText = hati || "💀";
+  }
+
+  function soalBerikutnya() {
+    if (nyawa <= 0) {
+      tampilkanAkhir("💀 Game Over! Nyawa kamu sudah habis.");
+      return;
+    }
+    indeks++;
+    if (indeks < bankSoal.length) {
+      muatSoal();
+    } else {
+      tampilkanAkhir("🎉 Selamat! Kamu telah menyelesaikan semua soal TKJ!");
+    }
+  }
+
+  function tampilkanAkhir(pesan) {
+    let predikat = skor >= 80 ? "Teknisi Handal 🏆" : skor >= 50 ? "Teknisi Junior 🔧" : "Perlu Belajar Lagi 📚";
+    document.getElementById('layar-game').innerHTML = `
+      <div style="text-align:center; padding: 20px 0;">
+        <h2 style="color:#38bdf8;">${pesan}</h2>
+        <p style="font-size:1.3rem; margin:15px 0;">Total Skor Akhir: <b style="color:#4ade80;">${skor} / 100</b></p>
+        <p style="color:#cbd5e1; margin-bottom:25px;">Predikat: <b>${predikat}</b></p>
+        <button class="btn-lanjut" style="display:block;" onclick="location.reload()">🔄 Main Lagi</button>
+      </div>
+    `;
+  }
+
+  muatSoal();
+</script>
+
+</body>
+</html>
